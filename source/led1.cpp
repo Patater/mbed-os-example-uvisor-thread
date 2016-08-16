@@ -46,14 +46,42 @@ UVISOR_BOX_RPC_GATEWAY_ASYNC(box_led1, led1_display_secret_async, led1_display_s
 
 static int led1_display_secret(uint32_t a, uint32_t b)
 {
+    //putc('0' + uvisor_box_id_caller(), stdout);
+    //fflush(stdout);
+
     ++uvisor_ctx->secret;
 
     return uvisor_ctx->secret;
 }
 
+static void led1_async_runner(const void * ctx)
+{
+    while (1) {
+        uvisor_rpc_result_t result;
+        result = led1_display_secret_async(0, 0);
+
+        /* Wait for a non-error result synchronously. */
+        while (1) {
+            int status;
+            /* TODO typesafe return codes */
+            uint32_t ret;
+            status = rpc_fncall_wait(result, UVISOR_WAIT_FOREVER, &ret);
+            if (!status) {
+                break;
+            }
+        }
+
+        putc('o', stdout);
+        fflush(stdout);
+
+        Thread::wait(1700);
+    }
+}
+
 static void led1_main(const void *)
 {
     uvisor_ctx->secret = 0;
+    Thread async_1(led1_async_runner);
 
     /* The list of functions we are interested in handling RPC requests for */
     const TFN_Ptr my_fn_array[] = {

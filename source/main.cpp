@@ -98,12 +98,12 @@ int main(void)
     size_t count = 0;
 
     /* Setup runner contexts. */
-    struct runner_context run1 = {'A', 200};
-    struct runner_context run2 = {'B', 300};
-    struct runner_context run3 = {'C', 500};
-    struct runner_context run4 = {'X', 700};
-    struct runner_context run5 = {'Y', 1100};
-    struct runner_context run6 = {'Z', 1300};
+    struct runner_context run1 = {'_', 200};
+    struct runner_context run2 = {'*', 300};
+    struct runner_context run3 = {'@', 500};
+    struct runner_context run4 = {'.', 700};
+    struct runner_context run5 = {'+', 1100};
+    struct runner_context run6 = {'|', 1300};
 
     /* Startup a few RPC runners. */
     Thread sync_1(led1_sync_runner, &run1);
