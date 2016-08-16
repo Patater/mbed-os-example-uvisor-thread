@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "led1.h"
+#include "green.h"
+#include "blue.h"
+#include "runner_context.h"
 #include "uvisor-lib/uvisor-lib.h"
 #include "mbed.h"
 #include "rtos.h"
@@ -35,83 +37,37 @@ UVISOR_SET_PRIV_SYS_HOOKS(SVC_Handler, PendSV_Handler, SysTick_Handler, __uvisor
 /* Enable uVisor. */
 UVISOR_SET_MODE_ACL(UVISOR_ENABLED, g_main_acl);
 
-struct runner_context {
-    char id;
-    uint32_t delay_ms;
-};
-
-static void led1_async_runner(const void * ctx)
-{
-    DigitalOut led1(LED1);
-    struct runner_context *rc = (struct runner_context *) ctx;
-
-    led1 = LED_OFF;
-
-    while (1) {
-        uvisor_rpc_result_t result;
-        /* Call led1_display_secret asynchronously. */
-        result = led1_display_secret_async(0, 0);
-
-        // ...Do stuff asynchronously here...
-
-        /* Wait for a non-error result synchronously. */
-        while (1) {
-            int status;
-            /* TODO typesafe return codes */
-            uint32_t ret;
-            status = rpc_fncall_wait(result, UVISOR_WAIT_FOREVER, &ret);
-            if (!status) {
-                break;
-            }
-        }
-
-        putc(rc->id, stdout);
-        fflush(stdout);
-
-        led1 = !led1;
-        Thread::wait(rc->delay_ms);
-    }
-}
-
-static void led1_sync_runner(const void * ctx)
-{
-    DigitalOut led2(LED2);
-    struct runner_context *rc = (struct runner_context *) ctx;
-
-    led2 = LED_OFF;
-
-    while (1) {
-        led1_display_secret_sync(0, 0); /* This waits forever for a result. */
-
-        putc(rc->id, stdout);
-        fflush(stdout);
-
-        led2 = !led2;
-        Thread::wait(rc->delay_ms);
-    }
-}
+/* Setup runner contexts. */
+/* The delays are all relatively prime numbers to encourage a wide range of
+ * interesting, but still deterministic, behaviors. */
+struct runner_context main_sync_1 = {'w', 20};
+struct runner_context main_sync_2 = {'W', 30};
+struct runner_context main_sync_3 = {'\\', 50};
+struct runner_context main_async_1 = {'m', 70};
+struct runner_context main_async_2 = {'M', 110};
+struct runner_context main_async_3 = {'/', 130};
+struct runner_context secondary_sync_1 = {'s', 170};
+struct runner_context secondary_sync_2 = {'S', 190};
+struct runner_context secondary_sync_3 = {'$', 230};
+struct runner_context secondary_async_1 = {'z', 310};
+struct runner_context secondary_async_2 = {'Z', 370};
+struct runner_context secondary_async_3 = {'&', 410};
+struct runner_context green_async_1 = {'G', 430};
+struct runner_context green_async_2 = {'g', 470};
 
 int main(void)
 {
-    printf("\r\n***** threaded blinky uvisor-rtos example *****\r\n");
+    //printf("\r\n***** threaded blinky uvisor-rtos example *****\r\n");
+    putc('*', stdout);
+    fflush(stdout);
 
     size_t count = 0;
 
-    /* Setup runner contexts. */
-    struct runner_context run1 = {'_', 200};
-    struct runner_context run2 = {'*', 300};
-    struct runner_context run3 = {'@', 500};
-    struct runner_context run4 = {'.', 700};
-    struct runner_context run5 = {'+', 1100};
-    struct runner_context run6 = {'|', 1300};
-
     /* Startup a few RPC runners. */
-    Thread sync_1(led1_sync_runner, &run1);
-    Thread sync_2(led1_sync_runner, &run2);
-    Thread sync_3(led1_sync_runner, &run3);
-    Thread async_1(led1_async_runner, &run4);
-    Thread async_2(led1_async_runner, &run5);
-    Thread async_3(led1_async_runner, &run6);
+    Thread * sync_1 = new(std::nothrow) Thread(green_sync_runner, &main_sync_1);
+    Thread * sync_2 = new(std::nothrow) Thread(blue_sync_runner, &main_sync_2);
+    Thread * async_1 = new(std::nothrow) Thread(green_async_runner, &main_async_1);
+    Thread * async_2 = new(std::nothrow) Thread(blue_async_runner, &main_async_2);
 
     while (1)
     {
