@@ -16,7 +16,7 @@
  */
 #include "green.h"
 #include "blue.h"
-#include "runner_context.h"
+#include "runner.h"
 #include "uvisor-lib/uvisor-lib.h"
 #include "mbed.h"
 #include "rtos.h"
@@ -37,24 +37,6 @@ UVISOR_SET_PRIV_SYS_HOOKS(SVC_Handler, PendSV_Handler, SysTick_Handler, __uvisor
 /* Enable uVisor. */
 UVISOR_SET_MODE_ACL(UVISOR_ENABLED, g_main_acl);
 
-/* Setup runner contexts. */
-/* The delays are all relatively prime numbers to encourage a wide range of
- * interesting, but still deterministic, behaviors. */
-struct runner_context main_sync_1 = {'w', 20};
-struct runner_context main_sync_2 = {'W', 30};
-struct runner_context main_sync_3 = {'\\', 50};
-struct runner_context main_async_1 = {'m', 70};
-struct runner_context main_async_2 = {'M', 110};
-struct runner_context main_async_3 = {'/', 130};
-struct runner_context secondary_sync_1 = {'s', 170};
-struct runner_context secondary_sync_2 = {'S', 190};
-struct runner_context secondary_sync_3 = {'$', 230};
-struct runner_context secondary_async_1 = {'z', 310};
-struct runner_context secondary_async_2 = {'Z', 370};
-struct runner_context secondary_async_3 = {'&', 410};
-struct runner_context green_async_1 = {'G', 430};
-struct runner_context green_async_2 = {'g', 470};
-
 int main(void)
 {
     //printf("\r\n***** threaded blinky uvisor-rtos example *****\r\n");
@@ -64,15 +46,34 @@ int main(void)
     size_t count = 0;
 
     /* Startup a few RPC runners. */
-    Thread * sync_1 = new(std::nothrow) Thread(green_sync_runner, &main_sync_1);
-    Thread * sync_2 = new(std::nothrow) Thread(blue_sync_runner, &main_sync_2);
-    Thread * async_1 = new(std::nothrow) Thread(green_async_runner, &main_async_1);
-    Thread * async_2 = new(std::nothrow) Thread(blue_async_runner, &main_async_2);
+    static const uint32_t stack_size = 512;
+    Thread * sync_1 = new(std::nothrow) Thread(sync_runner, &main_sync_1, osPriorityNormal, stack_size);
+    Thread * sync_2 = new(std::nothrow) Thread(sync_runner, &main_sync_2, osPriorityNormal, stack_size);
+    Thread * sync_3 = new(std::nothrow) Thread(sync_runner, &main_sync_3, osPriorityNormal, stack_size);
+    Thread * async_1 = new(std::nothrow) Thread(async_runner, &main_async_1, osPriorityNormal, stack_size);
+    Thread * async_2 = new(std::nothrow) Thread(async_runner, &main_async_2, osPriorityNormal, stack_size);
+    Thread * async_3 = new(std::nothrow) Thread(async_runner, &main_async_3, osPriorityNormal, stack_size);
+    if (sync_1 == NULL || sync_2 == NULL || sync_3 == NULL || async_1 == NULL || async_2 == NULL || async_3 == NULL) {
+        uvisor_error(USER_NOT_ALLOWED);
+    }
 
     while (1)
     {
+#define STATS_ENABLED 0
+#if STATS_ENABLED
+        uint32_t ticks_can_suspend = os_suspend();
+        puts("\r\n>---------------------------------------\r\n");
+        printf("ticks_can_suspend: %lu\r\n", ticks_can_suspend);
+        printf("green_handler_a_1: %u\r\n", green_handler_a_1.num_handled);
+        printf("green_handler_a_2: %u\r\n", green_handler_a_2.num_handled);
+        printf("green_handler_ab_1: %u\r\n", green_handler_ab_1.num_handled);
+        printf("green_handler_c_1: %u\r\n", green_handler_c_1.num_handled);
+        puts("<---------------------------------------\r\n");
+        os_resume(0); /* Pretend no ticks went by while suspended. */
+#endif
+
         /* Spin forever. */
-        ++count;
+        Thread::wait(10000);
     }
 
     return 0;

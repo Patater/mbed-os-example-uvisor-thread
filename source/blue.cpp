@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 #include "uvisor-lib/uvisor-lib.h"
-#include "runner_context.h"
 #include "mbed.h"
 #include "rtos.h"
 #include "main-hw.h"
@@ -38,7 +37,6 @@ static int blue_13_ms(void);
 UVISOR_BOX_NAMESPACE(NULL);
 UVISOR_BOX_HEAPSIZE(8192);
 UVISOR_BOX_MAIN(blue_main, osPriorityNormal, UVISOR_BOX_STACK_SIZE);
-UVISOR_BOX_RPC_MAX_INCOMING(8);
 UVISOR_BOX_CONFIG(box_blue, acl, UVISOR_BOX_STACK_SIZE, box_context);
 
 /* Gateways */
@@ -54,8 +52,8 @@ DigitalOut led3(LED3);
 
 static int blue_for_duration(uint32_t duration_ms)
 {
-    putc('0' + uvisor_box_id_caller(), stdout);
-    fflush(stdout);
+    //putc('0' + uvisor_box_id_caller(), stdout);
+    //fflush(stdout);
 
     led3 = LED_OFF;
     Thread::wait(duration_ms);
@@ -81,46 +79,6 @@ static int blue_13_ms(void)
     return blue_for_duration(13);
 }
 
-void blue_async_runner(const void * ctx)
-{
-    struct runner_context *rc = (struct runner_context *) ctx;
-
-
-    while (1) {
-        uvisor_rpc_result_t result;
-        result = blue_7_ms_async();
-
-        /* Wait for a non-error result synchronously. */
-        while (1) {
-            int status;
-            uint32_t ret;
-            status = rpc_fncall_wait(result, UVISOR_WAIT_FOREVER, &ret);
-            if (!status) {
-                break;
-            }
-        }
-
-        putc(rc->id, stdout);
-        fflush(stdout);
-
-        Thread::wait(rc->delay_ms);
-    }
-}
-
-void blue_sync_runner(const void * ctx)
-{
-    struct runner_context *rc = (struct runner_context *) ctx;
-
-    while (1) {
-        blue_7_ms_sync(); /* This waits forever for a result. */
-
-        putc(rc->id, stdout);
-        fflush(stdout);
-
-        Thread::wait(rc->delay_ms);
-    }
-}
-
 static void blue_main(const void *)
 {
     led3 = LED_OFF;
@@ -135,7 +93,7 @@ static void blue_main(const void *)
     while (1) {
         int status;
 
-        status = rpc_fncall_waitfor(my_fn_array, ARRAY_COUNT(my_fn_array), UVISOR_WAIT_FOREVER);
+        status = rpc_fncall_waitfor(my_fn_array, ARRAY_COUNT(my_fn_array), NULL, UVISOR_WAIT_FOREVER);
 
         if (status) {
             printf("Failure is not an option.\r\n");

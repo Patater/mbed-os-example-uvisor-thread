@@ -17,7 +17,15 @@
 #ifndef BLUE_H
 #define BLUE_H
 
-void blue_async_runner(const void * ctx);
-void blue_sync_runner(const void * ctx);
+#include "uvisor-lib/uvisor-lib.h"
+
+extern int (*blue_7_ms_sync)(void);
+extern uvisor_rpc_result_t (*blue_7_ms_async)(void);
+
+extern int (*blue_11_ms_sync)(void);
+extern uvisor_rpc_result_t (*blue_11_ms_async)(void);
+
+extern int (*blue_13_ms_sync)(void);
+extern uvisor_rpc_result_t (*blue_13_ms_async)(void);
 
 #endif

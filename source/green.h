@@ -17,7 +17,15 @@
 #ifndef GREEN_H
 #define GREEN_H
 
-void green_async_runner(const void * ctx);
-void green_sync_runner(const void * ctx);
+#include "uvisor-lib/uvisor-lib.h"
+
+extern int (*green_2_ms_sync)(void);
+extern uvisor_rpc_result_t (*green_2_ms_async)(void);
+
+extern int (*green_3_ms_sync)(void);
+extern uvisor_rpc_result_t (*green_3_ms_async)(void);
+
+extern int (*green_5_ms_sync)(void);
+extern uvisor_rpc_result_t (*green_5_ms_async)(void);
 
 #endif
