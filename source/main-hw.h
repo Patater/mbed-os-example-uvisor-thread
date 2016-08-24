@@ -20,6 +20,30 @@
 /* The vector containing the challenge is shared with the push-button ISR, so
  * that it can attempt to access it from an IRQ context. */
 
+#ifdef TARGET_EFM32GG_STK3700
+
+#define LED_ON  true
+#define LED_OFF false
+
+#define MAIN_LED LED_BLUE
+#define HALT_LED LED_RED
+
+#define MAIN_BTN SW2
+#define MAIN_BTN_PUPD PullUp
+
+#define MAIN_ACL(acl_list_name) \
+    static const UvisorBoxAclItem acl_list_name[] = {     \
+        {CMU,                 sizeof(*CMU),    UVISOR_TACLDEF_PERIPH}, \
+        {MSC,                 sizeof(*MSC),    UVISOR_TACLDEF_PERIPH}, \
+        {GPIO,                sizeof(*GPIO),   UVISOR_TACLDEF_PERIPH}, \
+        {TIMER0,              sizeof(*TIMER0), UVISOR_TACLDEF_PERIPH}, \
+        {UART0,               sizeof(*UART0),  UVISOR_TACLDEF_PERIPH}, \
+        {(void *) 0x0FE08000, 0x1000,          UVISOR_TACLDEF_PERIPH}, \
+        {(void *) 0x42000000, 0x2000000,       UVISOR_TACLDEF_PERIPH}, \
+    }
+
+#elif defined TARGET_K64F
+
 #define LED_ON  true
 #define LED_OFF false
 
@@ -47,5 +71,9 @@
         {I2C0,   sizeof(*I2C0),   UVISOR_TACLDEF_PERIPH}, \
         {SPI0,   sizeof(*SPI0),   UVISOR_TACLDEF_PERIPH}, \
     }
+
+#else
+#error "This example is not ported for this target!"
+#endif
 
 #endif /* __UVISOR_HELLOWORLD_MAIN_HW_H__ */
