@@ -17,7 +17,7 @@
 #
 ###########################################################################
 # App
-APP:=example-uvisor-threaded-blinky
+APP:=mbed-os-example-uvisor
 
 # Toolchain
 PREFIX:=arm-none-eabi-
@@ -76,7 +76,7 @@ endif
 
 # Read uVisor symbols.
 UVISOR_LIB:=mbed-os/features/FEATURE_UVISOR
-GDB_DEBUG_UVISOR=add-symbol-file $(DEBUG_ELF) uvisor_init
+GDB_DEBUG_UVISOR=#add-symbol-file $(DEBUG_ELF) uvisor_init
 
 # GDB scripts
 include Makefile.scripts
@@ -93,11 +93,11 @@ install: $(TARGET_BIN)
 	sync
 
 debug:
-	cp $(UVISOR_LIB)/importer/TARGET_IGNORE/uvisor/platform/kinetis/debug/configuration_kinetis_m4_0x1fff0000.elf $(DEBUG_ELF)
+	#cp $(UVISOR_LIB)/importer/TARGET_IGNORE/uvisor/platform/kinetis/debug/configuration_kinetis_m4_0x1fff0000.elf $(DEBUG_ELF)
 	mbed compile -t $(MBED_TOOLCHAIN) -m $(MBED_TARGET) -j 0 $(NEO) -o "debug-info"
 
 release:
-	cp $(UVISOR_LIB)/importer/TARGET_IGNORE/uvisor/platform/kinetis/release/configuration_kinetis_m4_0x1fff0000.elf $(DEBUG_ELF)
+	#cp $(UVISOR_LIB)/importer/TARGET_IGNORE/uvisor/platform/kinetis/release/configuration_kinetis_m4_0x1fff0000.elf $(DEBUG_ELF)
 	mbed compile -t $(MBED_TOOLCHAIN) -m $(MBED_TARGET) -j 0 $(NEO)
 
 objdump: $(TARGET_ASM)
