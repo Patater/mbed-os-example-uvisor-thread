@@ -17,7 +17,7 @@
 #
 ###########################################################################
 # App
-APP:=example-uvisor-threaded-blinky
+APP:=mbed-os-example-uvisor
 
 # Toolchain
 PREFIX:=arm-none-eabi-
