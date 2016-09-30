@@ -20,21 +20,22 @@
 #include "rtos.h"
 #include "main-hw.h"
 
+static const uint32_t kB = 1024;
+
 /* Create ACLs for main box. */
 MAIN_ACL(g_main_acl);
 /* Enable uVisor. */
 UVISOR_SET_MODE_ACL(UVISOR_ENABLED, g_main_acl);
-UVISOR_SET_PAGE_HEAP(8*1024, 5);
+UVISOR_SET_PAGE_HEAP(8 * kB, 9);
 
 static void main_alloc(void)
 {
-    const uint32_t kB = 1024;
     uint16_t seed = 0x10;
-    SecureAllocator alloc = secure_allocator_create_with_pages(4*kB, 1*kB);
+    SecureAllocator alloc = secure_allocator_create_with_pages(4 * kB, 1 * kB);
 
     while (1) {
         alloc_fill_wait_verify_free(500, seed, 577);
-        specific_alloc_fill_wait_verify_free(alloc, 5*kB, seed, 97);
+        specific_alloc_fill_wait_verify_free(alloc, 1 * kB, seed, 97);
         seed++;
     }
 }
@@ -42,8 +43,15 @@ static void main_alloc(void)
 int main(void)
 {
     osStatus status;
-    Thread * thread = new Thread();
-    status = thread->start(main_alloc);
+    static const uint32_t STACK_SIZE = 512;
+    unsigned char * stack = (unsigned char *) malloc(STACK_SIZE);
+    if (stack == NULL) {
+        puts("stack malloc failed\r\n");
+        fflush(stdout);
+        uvisor_error(USER_NOT_ALLOWED);
+    }
+    Thread thread(osPriorityNormal, STACK_SIZE, stack);
+    status = thread.start(main_alloc);
     if (status != osOK) {
         printf("Could not start main thread.\r\n");
         uvisor_error(USER_NOT_ALLOWED);
