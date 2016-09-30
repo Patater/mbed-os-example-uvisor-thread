@@ -5,7 +5,6 @@
 #include "main-hw.h"
 
 struct box_context {
-    Thread * thread;
     uint32_t heartbeat;
 };
 
@@ -15,8 +14,8 @@ static const UvisorBoxAclItem acl[] = {
 static void led1_main(const void *);
 
 UVISOR_BOX_NAMESPACE(NULL);
-UVISOR_BOX_HEAPSIZE(8192);
-UVISOR_BOX_MAIN(led1_main, osPriorityNormal, UVISOR_BOX_STACK_SIZE);
+UVISOR_BOX_HEAPSIZE(2000);
+UVISOR_BOX_MAIN(led1_main, osPriorityNormal, 512);
 UVISOR_BOX_CONFIG(box_led1, acl, UVISOR_BOX_STACK_SIZE, box_context);
 
 static void led1_main(const void *)
