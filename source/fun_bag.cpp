@@ -81,7 +81,8 @@ UVISOR_EXTERN void alloc_fill_wait_verify_free(size_t size, uint16_t seed, uint3
     /* Allocate a memory region. */
     memory = malloc(size);
     if (!memory) {
-        printf("malloc failed: %s:%u\n", __FILE__, __LINE__);
+        puts("malloc failed\r\n");
+        fflush(stdout);
         uvisor_error(USER_NOT_ALLOWED);
     }
 
